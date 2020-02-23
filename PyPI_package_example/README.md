@@ -61,10 +61,13 @@ from <this-package>.<sub> import <something>
 ```
 &lt;sub&gt; (in the file system) can be a script file such as `submodule.py` or another package such as `subpackage_1/`  
 ### write other code
-#### detect whether this package is being called as a program or imported as a library
+#### __name__ variable
 ```
+# if the script is run by 'module-calling' (`python -m <module-name>`), __name__ would be the module name
+print(__name__)   # -> name-of-this-module
+# and
 if __name__ == '__name__':
-  # called as a program
+  # doesn't work!
   do_something()
 ```
 #### detect where the script itself is

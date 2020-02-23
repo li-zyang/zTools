@@ -1,6 +1,3 @@
-if not __name__ == '__main__':
-  exit(0)
-
 import os, sys, argparse, shutil, re, textwrap
 
 parser = argparse.ArgumentParser()
