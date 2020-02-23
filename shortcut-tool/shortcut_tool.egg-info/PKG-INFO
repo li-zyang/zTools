@@ -1,0 +1,34 @@
+Metadata-Version: 2.1
+Name: shortcut-tool
+Version: 1.0.0
+Summary: Remove .exe mid-fix of shortcuts on Windows
+Home-page: https://github.com/li-zyang/zTools/tree/master/shortcut-tool
+Author: li-zyang
+Author-email: K_AEIx@163.com
+License: UNKNOWN
+Description: # Remove-exe-from-shortcut
+        Remove the stupid .exe mid-fix of shortcuts on Windows
+        
+        ## Installation
+        ```
+        pip install shortcut-tool
+        ```
+        
+        ## Usage
+        ```
+        # process in the current directory
+        python -m shortcut_tool rmexe
+        
+        # process in another directory
+        python -m shortcut_tool rmexe -i input/dir -o output/dir
+        
+        # automatically delete the mid-fixed shortcut
+        python -m shortcut_tool rmexe -d
+        ```
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Environment :: Win32 (MS Windows)
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

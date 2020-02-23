@@ -1,0 +1,7 @@
+README.md
+setup.py
+shortcut_tool/__init__.py
+shortcut_tool.egg-info/PKG-INFO
+shortcut_tool.egg-info/SOURCES.txt
+shortcut_tool.egg-info/dependency_links.txt
+shortcut_tool.egg-info/top_level.txt
