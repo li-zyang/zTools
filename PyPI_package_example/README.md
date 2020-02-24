@@ -1,12 +1,15 @@
 # example_pkg
-An example PyPI package
+An example PyPI distribution package  
+
+----
+# Making a python distribution package
 
 ## Project structure
 Project structure of a PyPI package
 ```
 Project-root/
  │
- ├─Package-root/  # Determines the package / program name 
+ ├─Package_root/  # Determines the package / program name 
  │ │              # import <the-name> or python -m <the-name>
  │ │
  │ ├─subpackage_1/
@@ -17,13 +20,114 @@ Project-root/
  │ ├─submodule_2.py
  │ ├─...
  │ │
- │ └─__init__.py    # Initialize the package (when be imported)
- │                  # or run as the entry of a program (when called with python -m)
+ │ ├─__main__.py    # entry of a 'program' (when being called with python -m)
+ │ └─__init__.py    # Initialize the package (when being imported)
  │
  ├─setup.py         # Used when packaging & installing
  ├─README.md        # Readme
  └─LICENSE          # License of the package
 ```
+### Execution sequence of scripts
+#### $ python -m Package_root
+```
+start => '__init__.py' => imports => '__main__.py' => end
+```
+#### >>> import Package_root
+```
+start => '__init__.py' => imports => return
+```
+### Namespace model
+```
++------------------------------------------------------------+
+|                          Python                            |
+|   +-------------+       +-------------+ +-------------+    |
+|   | Script      |       | module 1    | | package 1   |    |
+|   | ---         | ====> | {...}       | | {...}       |    |
+|   | ----------- |       +-------------+ +-------------+    |
+|   | -------     |       +-------------+ +-------------+    |
+|   |  -------    |       | module 2    | | package 2   |    |
+|   |  ----       | <==== | {...}       | | {...}       |    |
+|   | {...}       |       +-------------+ +-------------+    |
+|   +-------------+       ...                                |
+|                                                            |
++------------------------------------------------------------+
+```
+### Import model
+```
+                                 +--------------------------+
++-----------------------+        | (Package-pool)           |
+| # entry.py            |        |                          |
+| ---                   |        |                          |
+| -------               |        |    +---------------+     |
+| -----                 |        +----| # __init__.py |-----+
+| import demopkg -------+-----------> | ----          |
+|                       |             | ---------     |
+|                       |             | ...           |
+|                       |             |               |
+|          +----------+ |        +----| -- EXIT --    |-----+
+|          | demopkg  | |        |    +---------------+     |
+|          | {...}    | | <===== | demopkg                  |
+|          +----------+ |        |                          |
+| ------  <-------------+------- | {...}                    |
+| ----------            |        +--------------------------+
+| ...                   |
+|                       |
++-----------------------+
+
+1. the __init__.py is executed when the package is being imported but not initialized
+2. __init__.py reads the packages from the package pool and import what it want to the package
+3. the package is initialized and being accepted as an object by the script
+```
+> Note: Using `import <this-package>.<subpackage>` instead of `import <subpackage>` is still needed in `__init__.py`
+  because python seeks the package in the package pool (python's package directory & the sibling directory where the 
+  package itself lays) but not inside the package  
+
+> Note: `__init__.py` should only do imports, codes that interacts with user / system etc. should be included in `__main__.py`
+### Execution model
+```
+                            +-------------------------+
+                            | (Package-pool)          |
+                            |                         |
+                            |    +---------------+    |
++-----------------------+   +----| # __init__.py |----+
+|                       |        |               |          +-------------------+
+| $ python -m demopkg --+------> | ...           |          | # __main__.py     |
+|                       |        | -- EXIT --   -+--------> | import demopkg    |
+|                       |   +----|               |----+     | +-----------+     |
+|                       |   |    +---------------+    |     | | demopkg   |     |
+|                       |   | demopkg                 | ==> | | {...}     |     |
+|                       |   | {...}                   |     | +-----------+     |
+|                       |   +-------------------------+     | -------           |
+|                       |                                   | ---               |
+|                       |                                   | ...               |
+|                       |                                   |                   |
+| $ _                 <-+---------------------------------- | -- EXIT --        |
+|                       |                                   +-------------------+
++-----------------------+
+
+1. __init__.py initializes the package and prepare for further execution (similar to importing)
+2. the package is called as a software package, so the __main__.py is executed after the __init__.py
+3. __main__.py manages what the program do
+4. when __main__.py finishes, the program quits
+```
+### other code
+#### \_\_name\_\_ variable
+```
+# __name__ is the package name in __init__.py
+print(__name__)   # -> str, the package name
+# while in __main__.py, it's '__main__'
+print(__name__)   # -> '__main__'
+```
+#### detect where the script itself is
+```
+where_am_I = os.path.realpath(__file__) # -> str, actually concatenated the working dirctory with 
+                                        # the relative path of the script (__file__) 
+```
+#### detect where python is
+```
+where_is_python = sys.executable        # -> str
+```
+
 ## Writing setup.py
 ```
 import setuptools
@@ -50,49 +154,39 @@ setuptools.setup(
   python_requires = '>=3.6',
 )
 ```
-## Writing \_\_init\_\_.py
-### import submodules / subpackages
-```
-import <this-package>.<sub>
-```
-or  
-```
-from <this-package>.<sub> import <something>
-```
-&lt;sub&gt; (in the file system) can be a script file such as `submodule.py` or another package such as `subpackage_1/`  
-### write other code
-#### __name__ variable
-```
-# if the script is run by 'module-calling' (`python -m <module-name>`), __name__ would be the module name
-print(__name__)   # -> name-of-this-module
-# and
-if __name__ == '__name__':
-  # doesn't work!
-  do_something()
-```
-#### detect where the script itself is
-```
-where_am_I = os.path.realpath(__file__) # -> str, actually concatenatedthe working dirctory with 
-                                        # the relative path of the script (__file__) 
-```
-#### detect where python is
-```
-where_is_python = sys.executable        # -> str
-```
 
-## Uploading package to PyPI
-1. **install setuptools, wheel, twine for uploading**
+## Packaging python distribution
+1. **Install setuptools, wheel (if haven't)**
 ```
-pip install setuptools wheel twine
+pip install setuptools wheel
 ```
-2. **Pack your package**
+2. **Run setup.py to pack a distribution**
 ```
 python setup.py sdist bdist_wheel       # -> dist/<sth>.whl, dist/<sth>.tar.gz
 ```
-3. **Use twine to upload your package**
+
+## Installing the distribution
+```
+ls dist
+pip install dist/<sth>.whl
+```
+and the package is now available for testing
+```
+python -m <package> ...
+```
+
+## Uploading package to PyPI
+1. **install twine (if haven't)**
+```
+pip install twine
+```
+2. **Use twine to upload your package**
 ```
 # assume you're in the "Project-root" where "dist/" is generated there
-twine upload --repository-url https://test.pypi.org/legacy/ dist/*  # test PyPI index (may not needed)
+
+# test PyPI index (may not needed)
+# twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
 twine upload dist/*   # real PyPI index
 ```
 The username is your username (*not email*) on PyPI, and the password is your PyPI password  
