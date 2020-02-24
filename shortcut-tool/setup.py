@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
   name = "shortcut-tool",                           # the name shown in 'pip search'. 
                                                     # note: use '-' instead of '_'
-  version = "1.0.1",
+  version = "1.0.3",
   author = "li-zyang",
   author_email = "K_AEIx@163.com",
   description = "Remove .exe mid-fix of shortcuts on Windows",
